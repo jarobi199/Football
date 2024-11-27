@@ -42,34 +42,52 @@ public class Game {
         displayWinner();
     }
 
-    private void takeTurn(Team activeTeam, Team opponentTeam) {
+    public void takeTurn(Team activeTeam, Team opponentTeam) {
         System.out.println(activeTeam.getName() + "'s turn:");
         System.out.println("Current field position: " + activeTeam.getFieldPosition() + " yards.");
-        
+
         int currentDown = 1;
         int yardsToGo = YARDS_FOR_FIRST_DOWN;
         boolean activePossession = true;
 
-        while (activePossession && (currentDown <= MAX_DOWNS)) {
+        while (activePossession && currentDown < MAX_DOWNS) {
             System.out.println("Down: " + currentDown);
             System.out.println("Yards to go: " + yardsToGo);
-            System.out.print("Choose an action (Pass, Run, Field Goal, Punt): ");
-            String action = scanner.nextLine().trim().toLowerCase();
+            System.out.println("--");
+            System.out.println("Choose an action:");
+            System.out.println("1. Pass");
+            System.out.println("2. Run");
+            System.out.println("3. Field Goal");
+            System.out.println("4. Punt");
+            System.out.print("Enter the number corresponding to your action: ");
+            int actionChoice = Integer.parseInt(scanner.nextLine());
 
-            // AI makes a defensive choice based on the action and field position
-            String defense = chooseDefenseAI(action, activeTeam.getFieldPosition());
+            OffensiveAction action = switch (actionChoice) {
+                case 1 -> OffensiveAction.PASS;
+                case 2 -> OffensiveAction.RUN;
+                case 3 -> OffensiveAction.FIELD_GOAL;
+                case 4 -> OffensiveAction.PUNT;
+                default -> throw new IllegalStateException("Unexpected value: " + actionChoice);
+            };
+
+            // AI chooses a defense
+            DefensiveAction defense = chooseDefenseAI(action, activeTeam.getFieldPosition());
+            System.out.println(opponentTeam.getName() + " (AI) chooses defense: " + defense);
 
             int yardage = actionHandler.performAction(action, defense, random);
 
-            if (action.equals("field goal") && activeTeam.getFieldPosition() >= 50) {
+            if (OffensiveAction.FIELD_GOAL.equals(action) && activeTeam.getFieldPosition() >= 50) {
                 System.out.println("Field goal attempt!");
                 activeTeam.addScore(yardage);
                 activePossession = false;
-            } else if (action.equals("punt")) {
+            }
+            else if (OffensiveAction.PUNT.equals(action)) {
                 System.out.println("Punting the ball...");
                 opponentTeam.updateFieldPosition(-yardage);
                 activePossession = false;
-            } else {
+            }
+            else
+            {
                 activeTeam.updateFieldPosition(yardage);
                 yardsToGo -= yardage;
 
@@ -85,9 +103,11 @@ public class Game {
                     System.out.println("First down achieved! Resetting downs and yards to go.");
                     currentDown = 1;
                     yardsToGo = YARDS_FOR_FIRST_DOWN;
-                } else if (yardage < 0) {
+                }
+                else if (yardage < 0) {
                     System.out.println("Lost yardage!");
-                } else {
+                }
+                else {
                     currentDown++;
                 }
 
@@ -102,7 +122,7 @@ public class Game {
         }
     }
 
-    private void displayWinner() {
+    public void displayWinner() {
         System.out.println("===== Final Score =====");
         System.out.println(teamA.getName() + ": " + teamA.getScore() + " | " + teamB.getName() + ": " + teamB.getScore());
 
@@ -115,8 +135,19 @@ public class Game {
         }
     }
 
-    public String chooseDefenseAI(String action, int fieldPosition) {
-        // Defensive AI logic
+    public DefensiveAction chooseDefenseAI(OffensiveAction action, int fieldPosition) {
+        DefensiveAction defensiveAction =  DefensiveAction.NONE;
+
+        if (OffensiveAction.PASS.equals(action)) {
+            defensiveAction = random.nextInt(100) < 50 ? DefensiveAction.INTERCEPTION : DefensiveAction.NONE;
+        }
+        else if (OffensiveAction.RUN.equals(action)) {
+            defensiveAction = random.nextInt(100) < 50 ? DefensiveAction.BLOCK : DefensiveAction.NONE;
+        }
+
+        return defensiveAction;
+
+     /*   // Defensive AI logic
         if (action.equals("pass")) {
             if (fieldPosition > 70) {
                 // In red zone, more likely to defend pass
@@ -135,5 +166,6 @@ public class Game {
             // Default to "none" for punt and field goal
             return "none";
         }
+        */
     }
 }

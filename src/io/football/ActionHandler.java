@@ -4,22 +4,18 @@ import java.util.Random;
 
 public class ActionHandler {
 
-    public int performAction(String action, String defense, Random random) {
+    public int performAction(OffensiveAction action, DefensiveAction defense, Random random) {
         return switch (action) {
-            case "pass" -> attemptPass(defense, random);
-            case "run" -> attemptRun(defense, random);
-            case "field goal" -> attemptFieldGoal(random);
-            case "punt" -> attemptPunt(random);
-            default -> {
-                System.out.println("Invalid action. You lose your turn!");
-                yield 0;
-            }
+            case PASS -> attemptPass(defense, random);
+            case RUN -> attemptRun(defense, random);
+            case FIELD_GOAL -> attemptFieldGoal(random);
+            case PUNT -> attemptPunt(random);
         };
     }
 
-    public int attemptPass(String defense, Random random) {
+    public int attemptPass(DefensiveAction defense, Random random) {
         System.out.println("Attempting a pass...");
-        if ("interception".equals(defense) && random.nextInt(100) < 30) {
+        if (defense == DefensiveAction.INTERCEPTION && random.nextInt(100) < 30) {
             System.out.println("The pass was intercepted! Turnover!");
             return -20; // Lose yards on interception
         }
@@ -33,9 +29,9 @@ public class ActionHandler {
         }
     }
 
-    public int attemptRun(String defense, Random random) {
+    public int attemptRun(DefensiveAction defense, Random random) {
         System.out.println("Attempting a run...");
-        if ("block".equals(defense) && random.nextInt(100) < 40) {
+        if (defense == DefensiveAction.BLOCK && random.nextInt(100) < 40) {
             System.out.println("The run was blocked! No yards gained.");
             return 0;
         }
